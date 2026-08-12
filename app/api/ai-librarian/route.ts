@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/apiAuth";
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
     .filter(w => w.length > 3)
     .slice(0, 6);
 
-  let matches: Awaited<ReturnType<typeof prisma.book.findMany>> = [];
+  let matches: Prisma.BookGetPayload<{ include: { category: true } }>[] = [];
   try {
     matches = await prisma.book.findMany({
       where: keywords.length
