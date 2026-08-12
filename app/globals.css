@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy-900: #1b1f45;
+  --navy-800: #262b5c;
+  --orange: #e2833f;
+  --orange-dark: #c96f2e;
+  --orange-light: #f6e3d2;
+  --bg: #f5f6fb;
+  --border: #e5e7f0;
+  --muted: #6b7086;
+}
+
+body {
+  background: var(--bg);
+  color: #1b1f45;
+}
+
+/* Empty-state text used across dashboard widgets while data loads or is absent */
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 28px 10px;
+}

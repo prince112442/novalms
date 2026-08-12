@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooled connection (for the app)
+  directUrl = env("DIRECT_URL")     // direct connection (for migrations)
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  LIBRARIAN
+  STUDENT
+  LECTURER
+}
+
+enum MemberType {
+  STUDENT
+  LECTURER
+  STAFF
+  GUEST
+}
+
+enum MemberStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum LoanStatus {
+  ISSUED
+  RETURNED
+  OVERDUE
+}
+
+enum FineStatus {
+  UNPAID
+  PAID
+  WAIVED
+}
+
+// Mirrors a row in Supabase's auth.users table (id is the same UUID).
+// Created by scripts/create-admin.ts or a signup flow — Prisma never
+// creates Supabase Auth users directly, only their profile row here.
+model Profile {
+  id        String   @id @db.Uuid
+  fullName  String   @map("full_name")
+  email     String   @unique
+  role      UserRole @default(STUDENT)
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  issuedBooksProcessed IssuedBook[] @relation("IssuedBy")
+
+  @@map("profiles")
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  books Book[]
+
+  @@map("categories")
+}
+
+model Member {
+  id           Int          @id @default(autoincrement())
+  memberCode   String       @unique @map("member_code")
+  fullName     String       @map("full_name")
+  email        String       @unique
+  phone        String?
+  memberType   MemberType   @map("member_type")
+  department   String?
+  photoUrl     String?      @map("photo_url")
+  status       MemberStatus @default(ACTIVE)
+  registeredAt DateTime     @default(now()) @map("registered_at")
+
+  issuedBooks IssuedBook[]
+  fines       Fine[]
+  requests    BookRequest[]
+
+  @@map("members")
+}
+
+model Book {
+  id              Int       @id @default(autoincrement())
+  isbn            String?   @unique
+  title           String
+  author          String
+  categoryId      Int?      @map("category_id")
+  category        Category? @relation(fields: [categoryId], references: [id])
+  coverUrl        String?   @map("cover_url")
+  totalCopies     Int       @default(1) @map("total_copies")
+  availableCopies Int       @default(1) @map("available_copies")
+  shelfLocation   String?   @map("shelf_location")
+  addedAt         DateTime  @default(now()) @map("added_at")
+
+  issuedBooks IssuedBook[]
+  requests    BookRequest[]
+
+  @@map("books")
+}
+
+model IssuedBook {
+  id         Int        @id @default(autoincrement())
+  bookId     Int        @map("book_id")
+  book       Book       @relation(fields: [bookId], references: [id])
+  memberId   Int        @map("member_id")
+  member     Member     @relation(fields: [memberId], references: [id])
+  issuedById String?    @map("issued_by") @db.Uuid
+  issuedBy   Profile?   @relation("IssuedBy", fields: [issuedById], references: [id])
+  issueDate  DateTime   @map("issue_date") @db.Date
+  dueDate    DateTime   @map("due_date") @db.Date
+  returnDate DateTime?  @map("return_date") @db.Date
+  status     LoanStatus @default(ISSUED)
+
+  fines Fine[]
+
+  @@map("issued_books")
+}
+
+model BookRequest {
+  id          Int      @id @default(autoincrement())
+  bookId      Int      @map("book_id")
+  book        Book     @relation(fields: [bookId], references: [id])
+  memberId    Int      @map("member_id")
+  member      Member   @relation(fields: [memberId], references: [id])
+  requestedAt DateTime @default(now()) @map("requested_at")
+  status      String   @default("PENDING")
+
+  @@map("book_requests")
+}
+
+model Fine {
+  id           Int        @id @default(autoincrement())
+  issuedBookId Int        @map("issued_book_id")
+  issuedBook   IssuedBook @relation(fields: [issuedBookId], references: [id])
+  memberId     Int        @map("member_id")
+  member       Member     @relation(fields: [memberId], references: [id])
+  amount       Decimal    @db.Decimal(10, 2)
+  reason       String     @default("Overdue return")
+  status       FineStatus @default(UNPAID)
+  paidAt       DateTime?  @map("paid_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@map("fines")
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  actorName  String   @map("actor_name")
+  action     String
+  entityType String?  @map("entity_type")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("activity_log")
+}
