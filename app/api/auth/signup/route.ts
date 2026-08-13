@@ -12,6 +12,12 @@ export async function POST(req: NextRequest) {
   const fullName = body?.fullName?.trim();
   const email = body?.email?.trim().toLowerCase();
   const password = body?.password;
+  const requestedRole = body?.role;
+
+  // Self-signup can only ever create a STUDENT or LECTURER account — admin
+  // and librarian accounts are provisioned separately (scripts/create-admin.ts)
+  // so nobody can grant themselves staff access through this public form.
+  const role = requestedRole === "LECTURER" ? "LECTURER" : "STUDENT";
 
   if (!fullName || !email || !password) {
     return NextResponse.json({ message: "Full name, email and password are required" }, { status: 400 });
@@ -38,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   try {
     await prisma.profile.create({
-      data: { id: data.user.id, fullName, email, role: "STUDENT" }
+      data: { id: data.user.id, fullName, email, role }
     });
   } catch (err) {
     console.error(err);

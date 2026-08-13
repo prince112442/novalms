@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireRole } from "@/lib/apiAuth";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { unauthorized } = await requireAuth();
+  const { unauthorized } = await requireRole(["SUPER_ADMIN"]);
   if (unauthorized) return unauthorized;
 
   const { id } = await params;
@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { unauthorized } = await requireAuth();
+  const { unauthorized } = await requireRole(["SUPER_ADMIN"]);
   if (unauthorized) return unauthorized;
 
   const { id } = await params;

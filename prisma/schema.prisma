@@ -52,6 +52,7 @@ model Profile {
   createdAt DateTime @default(now()) @map("created_at")
 
   issuedBooksProcessed IssuedBook[] @relation("IssuedBy")
+  member               Member?
 
   @@map("profiles")
 }
@@ -75,6 +76,12 @@ model Member {
   photoUrl     String?      @map("photo_url")
   status       MemberStatus @default(ACTIVE)
   registeredAt DateTime     @default(now()) @map("registered_at")
+
+  // Links this library-member record to the logged-in account that can
+  // self-service borrow. Null for members who only ever get books issued
+  // by a librarian at the desk (no login of their own).
+  profileId    String?      @unique @db.Uuid @map("profile_id")
+  profile      Profile?     @relation(fields: [profileId], references: [id])
 
   issuedBooks IssuedBook[]
   fines       Fine[]

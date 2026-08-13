@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireRole } from "@/lib/apiAuth";
 
 // PUT /api/issued-books/:id/return — marks a loan returned, restocks the book.
+// Staff-only: returns are processed at the desk when the physical book comes back.
 export async function PUT(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { unauthorized } = await requireAuth();
+  const { unauthorized } = await requireRole(["SUPER_ADMIN", "LIBRARIAN"]);
   if (unauthorized) return unauthorized;
 
   const { id } = await params;

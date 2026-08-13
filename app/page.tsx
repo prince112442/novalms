@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   IconBook,
@@ -63,24 +64,55 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-5 pb-14 pt-14 sm:px-8 sm:pb-20 sm:pt-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="mb-4 inline-block rounded-full bg-orange-light px-3 py-1 text-[12.5px] font-semibold text-orange-dark">
-            University Library Management System
-          </span>
-          <h1 className="text-[32px] font-extrabold leading-tight sm:text-[44px]">
-            Your library, <span className="text-orange">online</span> and always open.
-          </h1>
-          <p className="mx-auto mt-4 max-w-lg text-[15px] text-slate-500 sm:text-base">
-            Browse the catalog, borrow and return books, and track fines — all from one place.
-            Built for students, lecturers and staff.
-          </p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/signup" className="w-full sm:w-auto">
-              <Button className="w-full px-6 py-3 text-[15px] sm:w-auto">Create your account</Button>
-            </Link>
-            <Link href="/login" className="w-full sm:w-auto">
-              <Button variant="outline" className="w-full px-6 py-3 text-[15px] sm:w-auto">I already have an account</Button>
-            </Link>
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
+          <div className="text-center lg:text-left">
+            <span className="mb-4 inline-block rounded-full bg-orange-light px-3 py-1 text-[12.5px] font-semibold text-orange-dark">
+              University Library Management System
+            </span>
+            <h1 className="text-[32px] font-extrabold leading-tight sm:text-[44px]">
+              Your library, <span className="text-orange">online</span> and always open.
+            </h1>
+            <p className="mx-auto mt-4 max-w-lg text-[15px] text-slate-500 sm:text-base lg:mx-0">
+              Browse the catalog, borrow and return books, and track fines — all from one place.
+              Built for Ghanaian students, lecturers and staff.
+            </p>
+            <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+              <Link href="/signup" className="w-full sm:w-auto">
+                <Button className="w-full px-6 py-3 text-[15px] sm:w-auto">Create your account</Button>
+              </Link>
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full px-6 py-3 text-[15px] sm:w-auto">I already have an account</Button>
+              </Link>
+            </div>
+          </div>
+          <div className="relative aspect-[4/3] overflow-hidden rounded-card shadow-card">
+            <Image
+              src="/images/hero-students.jpg"
+              alt="Ghanaian students studying together in the library"
+              fill
+              priority
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Photo banner */}
+      <section className="relative h-[280px] overflow-hidden sm:h-[360px]">
+        <Image
+          src="/images/library-busy.jpg"
+          alt="Students at work in a busy university library"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 flex items-center bg-navy-900/55">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <h2 className="max-w-md text-2xl font-bold text-white sm:text-[28px]">
+              Ghana&apos;s students, working together.
+            </h2>
+            <p className="mt-2 max-w-md text-[13.5px] text-[#dfe1f0]">
+              Built for real campus life — busy reading rooms, group study, and everything in between.
+            </p>
           </div>
         </div>
       </section>

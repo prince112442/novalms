@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireAuth, requireRole } from "@/lib/apiAuth";
 
 export async function GET() {
   const { unauthorized } = await requireAuth();
@@ -16,7 +16,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { unauthorized } = await requireAuth();
+  // Only admins can manually add a member record — students get their own
+  // member record automatically the first time they borrow a book.
+  const { unauthorized } = await requireRole(["SUPER_ADMIN"]);
   if (unauthorized) return unauthorized;
 
   const body = await req.json();

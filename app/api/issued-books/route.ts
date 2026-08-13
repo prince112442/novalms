@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireAuth, requireRole } from "@/lib/apiAuth";
 
 export async function GET(req: NextRequest) {
   const { unauthorized } = await requireAuth();
@@ -23,7 +23,9 @@ export async function GET(req: NextRequest) {
 // POST /api/issued-books  { bookId, memberId, dueDate }
 // Issues a book: creates the loan row and decrements available_copies, inside a transaction.
 export async function POST(req: NextRequest) {
-  const { unauthorized, user } = await requireAuth();
+  // Manual desk issuing (any member, any book) is staff-only — students
+  // borrow for themselves through POST /api/books/:id/borrow instead.
+  const { unauthorized, user } = await requireRole(["SUPER_ADMIN", "LIBRARIAN"]);
   if (unauthorized) return unauthorized;
 
   const { bookId, memberId, dueDate } = await req.json();

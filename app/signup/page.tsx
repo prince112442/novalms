@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ fullName: "", email: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({ fullName: "", email: "", password: "", confirmPassword: "", role: "STUDENT" });
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function SignupPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fullName: form.fullName, email: form.email, password: form.password })
+      body: JSON.stringify({ fullName: form.fullName, email: form.email, password: form.password, role: form.role })
     });
     const data = await res.json().catch(() => ({}));
     setLoading(false);
@@ -80,6 +80,17 @@ export default function SignupPage() {
           onChange={e => setForm({ ...form, email: e.target.value })}
           className="mb-4"
         />
+
+        <label className="mb-1.5 block text-[12.5px] font-semibold text-slate-700" htmlFor="role">I am a</label>
+        <select
+          id="role"
+          value={form.role}
+          onChange={e => setForm({ ...form, role: e.target.value })}
+          className="mb-4 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-navy-900"
+        >
+          <option value="STUDENT">Student</option>
+          <option value="LECTURER">Lecturer</option>
+        </select>
 
         <label className="mb-1.5 block text-[12.5px] font-semibold text-slate-700" htmlFor="password">Password</label>
         <Input
