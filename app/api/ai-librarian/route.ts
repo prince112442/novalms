@@ -73,34 +73,40 @@ export async function POST(req: NextRequest) {
       baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
     });
 
-    const completion = await ai.chat.completions.create({
-      // "gemini-flash-latest" is a rolling alias Google maintains that always
-      // points at their current stable Flash model — pinning to a specific
-      // dated model name (e.g. gemini-2.0-flash) breaks once Google retires
-      // that version, which is what happened here.
-      model: "gemini-flash-latest",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are the AI Librarian for a university library system. Answer helpfully and concisely. " +
-            "Only recommend or reference books that appear in the catalog excerpt provided — never invent " +
-            "titles, authors, or ISBNs that aren't listed. If nothing in the excerpt fits, say so plainly " +
-            "and suggest the person browse the full catalog instead."
-        },
-        {
-          role: "user",
-          content: `Catalog excerpt (from a keyword search on the question below):\n${catalogContext}\n\nQuestion: ${message}`
-        }
-      ]
-    });
+    const messages = [
+      {
+        role: "system" as const,
+        content:
+          "You are the AI Librarian for a university library system. Answer helpfully and concisely. " +
+          "Only recommend or reference books that appear in the catalog excerpt provided — never invent " +
+          "titles, authors, or ISBNs that aren't listed. If nothing in the excerpt fits, say so plainly " +
+          "and suggest the person browse the full catalog instead."
+      },
+      {
+        role: "user" as const,
+        content: `Catalog excerpt (from a keyword search on the question below):\n${catalogContext}\n\nQuestion: ${message}`
+      }
+    ];
+
+    // Gemini's free tier occasionally returns a transient 503 ("model
+    // overloaded") — worth one quick retry before falling back, since a
+    // second attempt a moment later usually goes through fine.
+    let completion;
+    try {
+      completion = await ai.chat.completions.create({ model: "gemini-flash-latest", messages });
+    } catch (firstErr) {
+      const status = (firstErr as { status?: number })?.status;
+      if (status !== 503) throw firstErr;
+      await new Promise(r => setTimeout(r, 800));
+      completion = await ai.chat.completions.create({ model: "gemini-flash-latest", messages });
+    }
 
     const reply = completion.choices[0]?.message?.content ?? "I couldn't generate a response — please try again.";
     return NextResponse.json({ reply, matches });
   } catch (err) {
     console.error(err);
     return NextResponse.json({
-      reply: `The AI service is unavailable right now, but here's what matches directly in the catalog:\n\n${catalogContext}`,
+      reply: `The AI service is a little busy right now, but here's what matches directly in the catalog:\n\n${catalogContext}`,
       matches
     });
   }
