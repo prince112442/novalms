@@ -29,7 +29,7 @@ hand-written HTML/CSS.
 - **Borrowing** — issue a book and return a book, both as real transactions (checks available copies, decrements/increments stock, logs to `activity_log`)
 - **Fines** — list + mark as paid, shown in Ghana Cedis (GH₵)
 - **Recommendations** — content-based, same logic as the previous build: a member's top borrowed category → available books there they don't already have; falls back to library-wide popularity for new members. Pure SQL via Prisma, no external AI call needed.
-- **AI Librarian** — a chat page (`/ai-librarian`) that does a keyword search over the real catalog first, then (if `OPENAI_API_KEY` is set) hands that as grounding context to OpenAI so it answers in natural language without inventing books that aren't actually in the library. **Without an API key it still works** — it just returns the catalog matches directly instead of a generated natural-language reply.
+- **AI Librarian** — a chat page (`/ai-librarian`) that does a keyword search over the real catalog first, then (if `GEMINI_API_KEY` is set) hands that as grounding context to Google's Gemini (free tier, via its OpenAI-compatible endpoint) so it answers in natural language without inventing books that aren't actually in the library. **Without an API key it still works** — it just returns the catalog matches directly instead of a generated natural-language reply.
 - **Seed data** — `prisma/seed.ts` loads ~103 real books (title/author verified, not placeholder text) across 10 categories, so every dashboard widget has real data immediately after setup.
 
 ## What's intentionally not included in this pass
@@ -85,7 +85,7 @@ Free tier is fine. From the dashboard, grab:
 cp .env.example .env
 # fill in NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
 # SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL, DIRECT_URL
-# (OPENAI_API_KEY is optional — see the AI Librarian note above)
+# (GEMINI_API_KEY is optional — see the AI Librarian note above)
 ```
 
 ### 3. Install, push the schema, seed

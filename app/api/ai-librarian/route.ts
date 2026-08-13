@@ -7,12 +7,15 @@ import { requireAuth } from "@/lib/apiAuth";
 //
 // Lightweight retrieval-augmented approach: pull books matching keywords
 // from the user's message out of the real catalog, then hand that short
-// list to OpenAI as grounding context so it can answer naturally
+// list to an AI model as grounding context so it can answer naturally
 // ("find me networking books", "recommend something like Clean Code",
 // "summarize what we have on databases") without inventing titles that
 // aren't actually in the library.
 //
-// If OPENAI_API_KEY isn't set, this still works — it falls back to
+// Uses Google's Gemini API (free tier, no card required) through its
+// OpenAI-compatible endpoint, so the same `openai` SDK works unchanged —
+// just a different base URL, API key, and model name from plain OpenAI.
+// If GEMINI_API_KEY isn't set, this still works — it falls back to
 // returning the matching catalog results directly, so the feature never
 // hard-fails just because a key hasn't been configured yet.
 export async function POST(req: NextRequest) {
@@ -54,21 +57,24 @@ export async function POST(req: NextRequest) {
     ? matches.map(b => `- "${b.title}" by ${b.author} (${b.category?.name ?? "Uncategorized"}), ${b.availableCopies} available`).join("\n")
     : "No close matches found in the catalog for these keywords.";
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json({
       reply: matches.length
-        ? `AI Librarian isn't fully configured yet (no OPENAI_API_KEY set), but here's what matches directly in the catalog:\n\n${catalogContext}`
-        : "AI Librarian isn't fully configured yet (no OPENAI_API_KEY set), and no catalog matches were found for that either. Add OPENAI_API_KEY to your environment to enable full natural-language answers.",
+        ? `AI Librarian isn't fully configured yet (no GEMINI_API_KEY set), but here's what matches directly in the catalog:\n\n${catalogContext}`
+        : "AI Librarian isn't fully configured yet (no GEMINI_API_KEY set), and no catalog matches were found for that either. Add a free GEMINI_API_KEY from Google AI Studio to enable full natural-language answers.",
       matches
     });
   }
 
   try {
     const { default: OpenAI } = await import("openai");
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const ai = new OpenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+    });
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await ai.chat.completions.create({
+      model: "gemini-2.0-flash",
       messages: [
         {
           role: "system",
