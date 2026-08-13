@@ -74,7 +74,11 @@ export async function POST(req: NextRequest) {
     });
 
     const completion = await ai.chat.completions.create({
-      model: "gemini-2.0-flash",
+      // "gemini-flash-latest" is a rolling alias Google maintains that always
+      // points at their current stable Flash model — pinning to a specific
+      // dated model name (e.g. gemini-2.0-flash) breaks once Google retires
+      // that version, which is what happened here.
+      model: "gemini-flash-latest",
       messages: [
         {
           role: "system",
