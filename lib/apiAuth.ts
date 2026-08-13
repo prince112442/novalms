@@ -18,3 +18,21 @@ export async function requireAuth() {
   const profile = await prisma.profile.findUnique({ where: { id: user.id } });
   return { user, profile, unauthorized: null };
 }
+
+// Like requireAuth, but also checks the caller's role. Use this for anything
+// students shouldn't be able to do (add/edit/delete books, etc).
+// Example: const { profile, unauthorized } = await requireRole(["SUPER_ADMIN", "LIBRARIAN"]);
+export async function requireRole(allowedRoles: string[]) {
+  const { user, profile, unauthorized } = await requireAuth();
+  if (unauthorized) return { user, profile, unauthorized };
+
+  if (!profile || !allowedRoles.includes(profile.role)) {
+    return {
+      user,
+      profile,
+      unauthorized: NextResponse.json({ message: "You don't have permission to do that" }, { status: 403 })
+    };
+  }
+
+  return { user, profile, unauthorized: null };
+}

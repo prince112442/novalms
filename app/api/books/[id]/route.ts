@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireAuth, requireRole } from "@/lib/apiAuth";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { unauthorized } = await requireAuth();
@@ -18,7 +18,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { unauthorized } = await requireAuth();
+  // Only librarians/admins can edit books — students and lecturers are read-only here.
+  const { unauthorized } = await requireRole(["SUPER_ADMIN", "LIBRARIAN"]);
   if (unauthorized) return unauthorized;
 
   const { id } = await params;
@@ -38,7 +39,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { unauthorized } = await requireAuth();
+  // Only librarians/admins can delete books — students and lecturers are read-only here.
+  const { unauthorized } = await requireRole(["SUPER_ADMIN", "LIBRARIAN"]);
   if (unauthorized) return unauthorized;
 
   const { id } = await params;
